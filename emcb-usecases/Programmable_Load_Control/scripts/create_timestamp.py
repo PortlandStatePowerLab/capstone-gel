@@ -1,3 +1,10 @@
+# Created by Midrar Adham
+# Summer Term 2021
+# midrar.adhm@gmail.com
+
+####################################################
+####################################################
+
 import pandas as pd
 from datetime import datetime
 from datetime import timedelta

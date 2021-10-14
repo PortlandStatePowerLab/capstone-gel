@@ -1,3 +1,11 @@
+# Created by Midrar Adham
+# Summer Term 2021
+# midrar.adhm@gmail.com
+
+####################################################
+####################################################
+
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as dt
