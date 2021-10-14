@@ -1,0 +1,479 @@
+// Exercise
+
+// tasks:
+  // Attach a house object to node 4 phase C.
+  // What is the difference between implicit enduses and explicit enduses in residential module?
+
+  // By default, houses have end-uses and appliances implicitly included but you can also choose to add extra
+  // details by adding an explicit model which includes some features that may be absent from the implicit model
+
+
+  // Requirements:
+    // Simulation time = one day.
+    // Timestep = Every 5 minutes
+    // Record Voltage, current, and power (both watts and VA) on the triplex section of the feeder
+
+  // Water heater parameters:
+    // location is inside the house.
+    // water temperature 120 F.
+    // type Electric water heater
+    // Volume 50 Gallons
+    // Deadband = 2F
+    // Capacity 4.5 kW
+    // Water demand 0.5 gallon per minute (gpm)
+    // inlet water temperature 60 F
+    // tank_UA 3.3
+
+  // Triplex objects parameters:
+    // line lengths = 0, nominal voltages = 120 Volts,
+
+
+// Configuration objects are already set up.
+
+// After adding the water heater, run the file in both FBS and NR. What is the difference?
+// FBS - radial systems, faster. NR: radial & mesh, slower
+
+
+module tape;
+module powerflow;
+module residential {
+	implicit_enduses NONE;
+};
+module market; //add/////
+
+class player{
+  double value;
+}
+//add
+class auction {
+    double current_price_mean_24h;
+    double current_price_stdev_24h;
+    double my_avg;
+    double my_std;
+}
+
+
+clock {
+	timestamp '2020-01-01 0:00:00';
+  //stoptime '2020-02-01 00:00:00';
+	stoptime '2020-01-02 00:10:00';
+	//timezone PST+8PDT;
+}
+
+
+// using a schedule for demand
+schedule demand {
+     0-9 0 * * * 0.00;
+     10-19 0 * * * 0.00;
+     20-29 0 * * * 0.00;
+     30-39 0 * * * 0.00;
+     40-49 0 * * * 0.00;
+     50-59 0 * * * 0.00;
+     0-9 1 * * * 0.00;
+     10-19 1 * * * 0.00;
+     20-29 1 * * * 0.00;
+     30-39 1 * * * 0.00;
+     40-49 1 * * * 0.00;
+     50-59 1 * * * 0.00;
+     0-9 2 * * * 0.00;
+     10-19 2 * * * 0.00;
+     20-29 2 * * * 0.00;
+     30-39 2 * * * 0.39;
+     40-49 2 * * * 0.00;
+     50-59 2 * * * 0.01;
+     0-9 3 * * * 0.00;
+     10-19 3 * * * 0.00;
+     20-29 3 * * * 0.00;
+     30-39 3 * * * 0.00;
+     40-49 3 * * * 0.00;
+     50-59 3 * * * 0.32;
+     0-9 4 * * * 0.00;
+     10-19 4 * * * 0.00;
+     20-29 4 * * * 0.00;
+     30-39 4 * * * 0.13;
+     40-49 4 * * * 0.00;
+     50-59 4 * * * 0.09;
+     0-9 5 * * * 0.23;
+     10-19 5 * * * 0.00;
+     20-29 5 * * * 0.00;
+     30-39 5 * * * 0.00;
+     40-49 5 * * * 0.00;
+     50-59 5 * * * 0.48;
+     0-9 6 * * * 0.88;
+     10-19 6 * * * 0.00;
+     20-29 6 * * * 0.00;
+     30-39 6 * * * 0.00;
+     40-49 6 * * * 0.00;
+     50-59 6 * * * 0.00;
+     0-9 7 * * * 0.00;
+     10-19 7 * * * 0.00;
+     20-29 7 * * * 0.00;
+     30-39 7 * * * 0.00;
+     40-49 7 * * * 0.00;
+     50-59 7 * * * 0.00;
+     0-9 8 * * * 0.00;
+     10-19 8 * * * 0.00;
+     20-29 8 * * * 0.00;
+     30-39 8 * * * 0.61;
+     40-49 8 * * * 0.00;
+     50-59 8 * * * 0.00;
+     0-9 9 * * * 0.00;
+     10-19 9 * * * 0.00;
+     20-29 9 * * * 0.00;
+     30-39 9 * * * 0.00;
+     40-49 9 * * * 0.00;
+     50-59 9 * * * 0.00;
+     0-9 10 * * * 0.00;
+     10-19 10 * * * 0.00;
+     20-29 10 * * * 0.00;
+     30-39 10 * * * 0.00;
+     40-49 10 * * * 0.00;
+     50-59 10 * * * 0.00;
+     0-9 11 * * * 0.00;
+     10-19 11 * * * 0.00;
+     20-29 11 * * * 0.00;
+     30-39 11 * * * 0.00;
+     40-49 11 * * * 0.00;
+     50-59 11 * * * 0.00;
+     0-9 12 * * * 0.00;
+     10-19 12 * * * 0.00;
+     20-29 12 * * * 0.00;
+     30-39 12 * * * 0.00;
+     40-49 12 * * * 0.00;
+     50-59 12 * * * 0.00;
+     0-9 13 * * * 0.00;
+     10-19 13 * * * 0.00;
+     20-29 13 * * * 0.00;
+     30-39 13 * * * 0.00;
+     40-49 13 * * * 0.00;
+     50-59 13 * * * 0.41;
+     0-9 14 * * * 0.00;
+     10-19 14 * * * 0.12;
+     20-29 14 * * * 0.00;
+     30-39 14 * * * 0.92;
+     40-49 14 * * * 0.30;
+     50-59 14 * * * 0.00;
+     0-9 15 * * * 0.78;
+     10-19 15 * * * 0.00;
+     20-29 15 * * * 0.00;
+     30-39 15 * * * 0.00;
+     40-49 15 * * * 0.00;
+     50-59 15 * * * 0.00;
+     0-9 16 * * * 0.00;
+     10-19 16 * * * 0.00;
+     20-29 16 * * * 0.00;
+     30-39 16 * * * 0.00;
+     40-49 16 * * * 0.00;
+     50-59 16 * * * 0.25;
+//    50-59 16 * * * 5;
+     0-9 17 * * * 0.00;
+     10-19 17 * * * 0.00;
+     20-29 17 * * * 0.00;
+     30-39 17 * * * 0.00;
+     40-49 17 * * * 0.00;
+     50-59 17 * * * 0.00;
+     0-9 18 * * * 0.00;
+     10-19 18 * * * 0.16;
+     20-29 18 * * * 0.00;
+     30-39 18 * * * 0.00;
+     40-49 18 * * * 0.00;
+     50-59 18 * * * 0.00;
+     0-9 19 * * * 0.00;
+     10-19 19 * * * 0.00;
+     20-29 19 * * * 0.00;
+     30-39 19 * * * 0.00;
+     40-49 19 * * * 0.00;
+     50-59 19 * * * 0.00;
+     0-9 20 * * * 0.00;
+     10-19 20 * * * 0.00;
+     20-29 20 * * * 0.00;
+     30-39 20 * * * 0.00;
+     40-49 20 * * * 0.00;
+     50-59 20 * * * 0.00;
+     0-9 21 * * * 0.00;
+     10-19 21 * * * 0.00;
+     20-29 21 * * * 0.00;
+     30-39 21 * * * 0.00;
+     40-49 21 * * * 0.00;
+     50-59 21 * * * 0.00;
+     0-9 22 * * * 0.00;
+     10-19 22 * * * 0.00;
+     20-29 22 * * * 0.00;
+     30-39 22 * * * 0.00;
+     40-49 22 * * * 0.00;
+     50-59 22 * * * 0.00;
+     0-9 23 * * * 0.00;
+     10-19 23 * * * 0.00;
+     20-29 23 * * * 0.00;
+     30-39 23 * * * 0.00;
+     40-49 23 * * * 0.00;
+     50-59 23 * * * 0.00;
+}
+
+// IEEE 4 Node Feeder: Balanced step-down delta-delta
+
+object line_configuration {
+	name LC300;
+	conductor_A OH100;
+	conductor_B OH100;
+	conductor_C OH100;
+	conductor_N OH101;
+	spacing LS200;
+}
+object line_spacing {
+	name LS200;
+	distance_AB 2.5;
+	distance_BC 4.5;
+	distance_AC 7.0;
+	distance_AN 5.656854;
+	distance_BN 4.272002;
+	distance_CN 5.0;
+}
+object overhead_line_conductor {
+	name OH100;
+	geometric_mean_radius 0.0244;
+	resistance 0.306;
+}
+object overhead_line_conductor {
+	name OH101;
+	geometric_mean_radius 0.00814;
+	resistance 0.592;
+}
+object transformer_configuration {
+	name XFC400;
+	connect_type WYE_WYE;
+    install_type PADMOUNT;
+	power_rating 6000;
+	primary_voltage 12470;
+	secondary_voltage 4160;
+	resistance 0.01;
+	reactance 0.06;
+}
+object transformer_configuration {
+	name PoleTop;
+	connect_type SINGLE_PHASE_CENTER_TAPPED;
+	power_rating 400;
+    powerA_rating 400;
+	primary_voltage 2400;
+	secondary_voltage 120;
+	resistance 0.01;
+	reactance 0.06;
+}
+object triplex_line_configuration { //
+      name triplex_line_config;
+      conductor_1 Name_1_0_AA_triplex;
+      conductor_2 Name_1_0_AA_triplex;
+      conductor_N Name_1_0_AA_triplex;
+      insulation_thickness 0.1;
+      diameter 0.4;
+}
+
+object triplex_line_conductor { // Midrar qustion
+      name Name_1_0_AA_triplex;
+      resistance 0.57;
+      geometric_mean_radius 0.0111;
+}
+
+object node {
+	name Node1;
+	bustype SWING;
+	phases A|B|C;
+	voltage_A +7199.558+0.000j;
+	voltage_B -3599.779-6235.000j;
+	voltage_C -3599.779+6235.000j;
+	nominal_voltage 7199.558;
+}
+
+object overhead_line {
+	name Link12;
+	phases A|B|C;
+	from Node1;
+	to Node2;
+	length 2000;
+	configuration LC300;
+	nominal_voltage 7199.558;
+}
+
+object node {
+	name Node2;
+	phases A|B|C;
+	voltage_A +7199.558+0.000j;
+	voltage_B -3599.779-6235.000j;
+	voltage_C -3599.779+6235.000j;
+	nominal_voltage 7199.558;
+}
+object transformer {
+	name substation_transformer;
+	phases A|B|C;
+	from Node2;
+	to substation_meter;
+	configuration XFC400;
+}
+
+object meter {
+      name substation_meter;
+      phases ABCN;
+      nominal_voltage 4160;
+}
+
+object overhead_line {
+	name branch;
+	phases A|B|C;
+	from substation_meter;
+	to Node3;
+	length 2000;
+	configuration LC300;
+	nominal_voltage 2401.777;
+}
+object node {
+	name Node3;
+	phases A|B|C;
+	voltage_A +2401.777+0.000j;
+	voltage_B -1200.889-2080.000j;
+	voltage_C -1200.889+2080.000j;
+	nominal_voltage 4160;
+}
+
+object overhead_line {
+	name branch1;
+	phases A|B|C;
+	from Node3;
+	to Node4;
+	length 2000;
+	configuration LC300;
+	nominal_voltage 4160;
+}
+
+object node {
+	name Node4;
+	phases A|B|C;
+	voltage_A +2401.777+0.000j;
+	voltage_B -1200.889-2080.000j;
+	voltage_C -1200.889+2080.000j;
+	nominal_voltage 4160;
+}
+
+object auction {
+    name market;
+    period 30;
+    special_mode BUYERS_ONLY;
+    unit kW;
+    my_avg 5;
+    my_std 0.03;
+//    property price;
+    object player {
+        file price.csv;
+        loop 10;
+//        property current_market.clearing_price;
+        property fixed_price;
+    };
+}
+object passive_controller {
+    period 30;
+    parent wh1;
+    control_mode PROBABILITY_OFF;
+    distribution_type NORMAL;
+    observation_object market;
+    observation_property fixed_price;
+//  observation_property current_market.clearing_price;
+    stdev_observation_property my_std;
+    expectation_object market;
+    expectation_property my_avg;
+    comfort_level 9999;
+    state_property override;
+};
+
+object transformer{
+	name split_xfmr_1;
+	phases AS;
+	from Node4;
+	to TRIP_NODE1;
+	configuration PoleTop;
+}
+
+object triplex_node { // added
+	name TRIP_NODE1;
+	phases AS;
+	nominal_voltage 120;
+}
+
+object triplex_line { //add
+	name trip_line1;
+	phases AS;
+	from TRIP_NODE1;
+	to mr_meter_1;
+	length 10;
+	configuration triplex_line_config;
+}
+
+object triplex_meter { //add
+	name mr_meter_1;
+	phases AS;
+	nominal_voltage 120;
+  object recorder {
+    name recorder;
+    file "output2.csv";
+    property measured_real_power;
+    interval 30;
+    };
+}
+
+
+//// here are the stuff I added
+
+object house {
+	name house_1;
+	// no need to specify phase used, inherits parent's phase
+  // panel.power_factor 0.98;
+	parent mr_meter_1;
+	breaker_amps 30;
+  //internal_gains;
+}
+
+object waterheater {
+	parent house_1; // heater is inside the house
+	name wh1;
+	// no need to specify phase used
+	temperature 120;
+	tank_volume 50;
+	thermostat_deadband 2;
+	heating_element_capacity 4.5 kW;
+	water_demand demand;
+	inlet_water_temperature 60;
+	tank_UA 3.3;
+	tank_setpoint 119;
+	object recorder {
+		name WH_recorder_1;
+		//interval 600;
+    interval 30;
+		property is_waterheater_on, temperature, height,water_demand,heatgain,load_state,waterheater_model;
+		file "wh1.csv";
+	}; // always put a semicolon for the curly bracket of a nested object
+
+}
+
+object triplex_load { //our representation of an EV load, since GLD has no EV end_use
+	name EV_load;
+	phases AS;
+	parent mr_meter_1;
+	nominal_voltage 120; // constant
+	voltage_1 120+0j; // changes (if you have issues with the circuit breakers etc)
+	voltage_2 120+0j;
+	voltage_N 0; // neutral voltage
+  //linking player object to triplex load
+  object player {
+    name EV_power_profile;
+    file "converted0.csv";     //replace the property with an object player, the player holds the input file.
+    property constant_power_1;
+  };
+}
+
+//records all data from mr_meter_1
+object recorder {
+	name mr_recorder_1;
+	parent mr_meter_1;
+	property measured_real_power, measured_current_1, measured_voltage_1; // current & voltage on split phase 1
+	// interval 600; // every 10 mins
+  interval 30;
+	file output.csv;
+}
